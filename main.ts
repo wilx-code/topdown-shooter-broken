@@ -8,18 +8,108 @@ namespace SpriteKind {
     export const grenade = SpriteKind.create()
     export const enemyrifleperson = SpriteKind.create()
     export const enemyriflebullet = SpriteKind.create()
+    export const piercing = SpriteKind.create()
+    export const enemyhitbox = SpriteKind.create()
 }
+sprites.onOverlap(SpriteKind.piercing, SpriteKind.enemyrifleperson, function (sprite, otherSprite) {
+    sprites.destroy(sprite)
+    sprites.changeDataNumberBy(otherSprite, "Hp", randint(-30, -50))
+})
+sprites.onCreated(SpriteKind.piercing, function (sprite) {
+    timer.after(randint(0, 750), function () {
+        sprites.destroy(sprite)
+    })
+})
 browserEvents.onWheel(function (dx, dy, dz) {
     if (dy < 0) {
-        toolbar.change_number(ToolbarNumberAttribute.SelectedIndex, 1)
-        if (toolbar.get_number(ToolbarNumberAttribute.SelectedIndex) > 2) {
-            toolbar.set_number(ToolbarNumberAttribute.SelectedIndex, 0)
+        if (zoom < 1.5) {
+            zoom += 0.5
+        } else {
+        	
         }
     } else if (dy > 0) {
-        toolbar.change_number(ToolbarNumberAttribute.SelectedIndex, -1)
-        if (toolbar.get_number(ToolbarNumberAttribute.SelectedIndex) < 0) {
-            toolbar.set_number(ToolbarNumberAttribute.SelectedIndex, 2)
+        if (zoom > 0.5) {
+            zoom += -0.5
+        } else {
+        	
         }
+    }
+})
+spriteutils.onSpriteKindUpdateInterval(SpriteKind.enemyrifleperson, 500, function (sprite) {
+    transformSprites.rotateSprite(sprite, spriteutils.radiansToDegrees(spriteutils.angleFrom(sprite, person)))
+    if (spriteutils.distanceBetween(sprite, person) > 175) {
+    	
+    } else {
+        sprite.setVelocity(0, 0)
+        sprite.unfollow()
+    }
+    if (sprite.vx == 0 && sprite.vy == 0) {
+        if (sight.isInSight(
+        sprite,
+        person,
+        200,
+        false
+        )) {
+            if (sprites.readDataNumber(sprite, "bulletsLeft") > 0 && sprites.readDataBoolean(sprite, "reloading") == false) {
+                enemyrifleprojectile = sprites.create(img`
+                    . . . . . 
+                    . . . . . 
+                    c c c c c 
+                    . . . . . 
+                    . . . . . 
+                    `, SpriteKind.enemyriflebullet)
+                scene.cameraShake(2, 200)
+                spriteutils.placeAngleFrom(
+                enemyrifleprojectile,
+                spriteutils.angleFrom(sprite, person),
+                25,
+                sprite
+                )
+                spriteutils.setVelocityAtAngle(enemyrifleprojectile, spriteutils.angleFrom(sprite, person), 500)
+                transformSprites.rotateSprite(enemyrifleprojectile, spriteutils.radiansToDegrees(spriteutils.angleFrom(sprite, person)))
+                sprites.changeDataNumberBy(sprite, "bulletsLeft", -1)
+                explosiongsprite = sprites.create(img`
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    . . . . . . . . . . . . . . . . 
+                    `, SpriteKind.nothin)
+                spriteutils.placeAngleFrom(
+                explosiongsprite,
+                spriteutils.angleFrom(sprite, person),
+                14,
+                sprite
+                )
+                extraEffects.createSpreadEffectOnAnchor(explosiongsprite, extraEffects.createFullPresetsSpreadEffectData(ExtraEffectPresetColor.Fire, ExtraEffectPresetShape.Explosion), 100, 20, 5)
+                if (Math.percentChance(10)) {
+                    sprite.setVelocity(randint(-20, 20), randint(-20, 20))
+                    timer.after(500, function () {
+                        sprite.setVelocity(0, 0)
+                    })
+                }
+            }
+        }
+    } else {
+    	
+    }
+    if (sprites.readDataNumber(sprite, "bulletsLeft") == 0 && sprites.readDataBoolean(sprite, "reloading") == false) {
+        sprites.setDataBoolean(sprite, "reloading", true)
+        timer.after(2000, function () {
+            sprites.setDataNumber(sprite, "bulletsLeft", 30)
+            sprites.setDataBoolean(sprite, "reloading", false)
+        })
     }
 })
 statusbars.onZero(StatusBarKind.Health, function (status) {
@@ -65,66 +155,48 @@ browserEvents.R.onEvent(browserEvents.KeyEvent.Pressed, function () {
     }
 })
 browserEvents.onMouseMove(function (x, y) {
-    mouse.setPosition(scene.cameraProperty(CameraProperty.Left) + x, scene.cameraProperty(CameraProperty.Top) + y)
+    mouseX = x
+    mouseY = y
+    mouse.setPosition(scene.cameraProperty(CameraProperty.Left) + mouseX, scene.cameraProperty(CameraProperty.Top) + mouseY)
 })
-spriteutils.onSpriteKindUpdateInterval(SpriteKind.enemyrifleperson, 200, function (sprite) {
-    if (spriteutils.distanceBetween(sprite, person) > 125) {
-        sprite.follow(person, 30)
-    } else {
-        sprite.setVelocity(0, 0)
-        sprite.unfollow()
-    }
-    if (sprite.vx == 0 && sprite.vy == 0) {
-        if (sight.isInSight(
-        sprite,
-        person,
-        125,
-        false
-        )) {
-            sprites.setDataNumber(sprite, "movementAngle", spriteutils.radiansToDegrees(spriteutils.angleFrom(sprite, person)))
-            transformSprites.rotateSprite(sprite, spriteutils.radiansToDegrees(spriteutils.angleFrom(sprite, person)))
-            if (sprites.readDataNumber(sprite, "bulletsLeft") > 0 && sprites.readDataBoolean(sprite, "reloading") == false) {
-                enemyrifleprojectile = sprites.create(img`
-                    . . . . . 
-                    . . . . . 
-                    c c c c c 
-                    . . . . . 
-                    . . . . . 
-                    `, SpriteKind.enemyriflebullet)
-                spriteutils.placeAngleFrom(
-                enemyrifleprojectile,
-                spriteutils.angleFrom(sprite, person),
-                25,
-                sprite
-                )
-                spriteutils.setVelocityAtAngle(enemyrifleprojectile, spriteutils.angleFrom(sprite, person), 500)
-                transformSprites.rotateSprite(enemyrifleprojectile, spriteutils.radiansToDegrees(spriteutils.angleFrom(sprite, person)))
-                sprites.changeDataNumberBy(sprite, "bulletsLeft", -1)
-            }
-        }
-    } else {
-        sprites.setDataNumber(sprite, "movementAngle", spriteutils.radiansToDegrees(Math.atan2(sprite.vy, sprite.vx)))
-        transformSprites.rotateSprite(sprite, sprites.readDataNumber(sprite, "movementAngle"))
-    }
-    if (sprites.readDataNumber(sprite, "bulletsLeft") == 0 && sprites.readDataBoolean(sprite, "reloading") == false) {
-        sprites.setDataBoolean(sprite, "reloading", true)
-        timer.after(2000, function () {
-            sprites.setDataNumber(sprite, "bulletsLeft", 30)
-            sprites.setDataBoolean(sprite, "reloading", false)
-        })
-    }
+sprites.onOverlap(SpriteKind.pistol, SpriteKind.enemyrifleperson, function (sprite, otherSprite) {
+    sprites.destroy(sprite)
+    sprites.changeDataNumberBy(otherSprite, "Hp", randint(-30, -50))
+})
+scene.onHitWall(SpriteKind.enemyriflebullet, function (sprite, location) {
+    sprites.destroy(sprite)
+})
+sprites.onOverlap(SpriteKind.enemyriflebullet, SpriteKind.Player, function (sprite, otherSprite) {
+    sprites.destroy(sprite)
+    healthbar.value += randint(-20, -30)
+})
+sprites.onCreated(SpriteKind.nothin, function (sprite) {
+    timer.after(1000, function () {
+        sprites.destroy(sprite)
+    })
+})
+sprites.onOverlap(SpriteKind.rifle, SpriteKind.enemyrifleperson, function (sprite, otherSprite) {
+    sprites.destroy(sprite)
+    sprites.changeDataNumberBy(otherSprite, "Hp", randint(-30, -50))
 })
 let dg = 0
+let shrapnel: Sprite = null
 let grenad: Sprite = null
 let pistolprojectile: Sprite = null
-let explosiongsprite: Sprite = null
 let rifleprojectile: Sprite = null
 let issprinting = false
-let enemyrifleprojectile: Sprite = null
+let dy = 0
+let dx = 0
+let mouseY = 0
+let mouseX = 0
 let pistolsubtraction = 0
 let riflesubtraction = 0
 let reloading = false
+let explosiongsprite: Sprite = null
+let enemyrifleprojectile: Sprite = null
+let zoom = 0
 let enemyrifleguy: Sprite = null
+let healthbar: StatusBarSprite = null
 let toolbar: Inventory.Toolbar = null
 let pistolmag_ammo = 0
 let pistoltotal_ammo = 0
@@ -133,7 +205,8 @@ let riflemag_ammo = 0
 let rifletotal_ammo = 0
 let mouse: Sprite = null
 let person: Sprite = null
-scene.setBackgroundColor(0)
+let scoped = false
+scene.setBackgroundColor(7)
 tiles.setCurrentTilemap(tilemap`level1`)
 namespace userconfig {
     export const ARCADE_SCREEN_WIDTH = 320
@@ -170,12 +243,15 @@ person.z = 100
 tiles.placeOnTile(person, tiles.getTileLocation(8, 8))
 scene.cameraFollowSprite(person)
 mouse = sprites.create(img`
-    . . 1 . . 
-    . . 1 . . 
-    1 1 . 1 1 
-    . . 1 . . 
-    . . 1 . . 
+    . . . 1 . . . 
+    . . . 1 . . . 
+    . . 1 1 1 . . 
+    1 1 1 . 1 1 1 
+    . . 1 1 1 . . 
+    . . . 1 . . . 
+    . . . 1 . . . 
     `, SpriteKind.ui)
+mouse.z = 200
 let akpic = sprites.create(img`
     ..............................
     ..............................
@@ -376,11 +452,12 @@ akpic.setFlag(SpriteFlag.Invisible, false)
 f1pic.setFlag(SpriteFlag.Invisible, true)
 gsh18pic.setFlag(SpriteFlag.Invisible, true)
 let grenades = 3
-let healthbar = statusbars.create(60, 8, StatusBarKind.Health)
+healthbar = statusbars.create(60, 8, StatusBarKind.Health)
 healthbar.max = 200
 healthbar.value = 200
 healthbar.setLabel("HP")
 healthbar.setStatusBarFlag(StatusBarFlag.SmoothTransition, true)
+healthbar.setBarBorder(1, 15)
 healthbar.setPosition(40, 230)
 healthbar.setFlag(SpriteFlag.RelativeToCamera, true)
 let mag_ammo_text = textsprite.create("")
@@ -390,54 +467,102 @@ total_ammo_text.setFlag(SpriteFlag.RelativeToCamera, true)
 mag_ammo_text.setPosition(3, 210)
 total_ammo_text.setPosition(3, 220)
 for (let value of tiles.getTilesByType(assets.tile`myTile`)) {
-    tiles.setTileAt(value, assets.tile`transparency16`)
+    tiles.setTileAt(value, assets.tile`myTile0`)
     enemyrifleguy = sprites.create(img`
-        ........................................
-        ........fffffffff.......................
-        ......ffcccccccccff.....................
-        .....fcccccccccccccf....................
-        ....fcccccccccccccccf...................
-        ...fcccccccccccccccccf..................
-        ..fcccccccccccccccccccf.................
-        ..fcccccccccccccccccccf.................
-        .fcccccccccccccccccccccf................
-        .fcccccccccccccccccccccf................
-        .fcccccccccccccccccccccf................
-        .fcccccccccccccccccccccf................
-        .fcccccccccccccccccccccf................
-        .fcccccccccccccccccccccf................
-        .fcccccccccccccccccccccf................
-        .fcccccccccccccccccccccfccc.............
-        .fcccccccccccccccccccccfcfcccccccccccccf
-        ..fcccccccccccccccccccfccfcccccccccccccf
-        ..fcccccccccccccccccccfcccc.............
-        ...fcccccccccccccccccfbc................
-        ....fcccccccccccccccfbbc................
-        .....fcccccccccccccfbbc.................
-        ......ffcccccccccff.....................
-        ........fffffffff.......................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
-        ........................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        ......................fffffffff........................
+        ....................ffcccccccccff......................
+        ...................fcccccccccccccf.....................
+        ..................fcccccccccccccccf....................
+        .................fcccccccccccccccccf...................
+        ................fcccccccccccccccccccf..................
+        ................fcccccccccccccccccccf..................
+        ...............fcccccccccccccccccccccf.................
+        ...............fcccccccccccccccccccccf.................
+        ...............fcccccccccccccccccccccf.................
+        ...............fcccccccccccccccccccccf.................
+        ...............fcccccccccccccccccccccf.................
+        ...............fcccccccccccccccccccccf.................
+        ...............fcccccccccccccccccccccf.................
+        ...............fcccccccccccccccccccccfccc..............
+        ...............fcccccccccccccccccccccfcfcccccccccccccf.
+        ................fcccccccccccccccccccfccfcccccccccccccf.
+        ................fcccccccccccccccccccfcccc..............
+        .................fcccccccccccccccccfbc.................
+        ..................fcccccccccccccccfbbc.................
+        ...................fcccccccccccccfbbc..................
+        ....................ffcccccccccff......................
+        ......................fffffffff........................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
+        .......................................................
         `, SpriteKind.enemyrifleperson)
     tiles.placeOnTile(enemyrifleguy, value)
+    sprites.setDataNumber(enemyrifleguy, "Hp", 100)
     sprites.setDataNumber(enemyrifleguy, "bulletsLeft", 30)
     sprites.setDataBoolean(enemyrifleguy, "reloading", false)
 }
+game.onUpdate(function () {
+    if (scoped) {
+        mouse.setImage(img`
+            . . . . 2 . . . . 
+            . . . . 2 . . . . 
+            . . . 2 2 2 . . . 
+            . . 2 . . . 2 . . 
+            2 2 2 . 2 . 2 2 2 
+            . . 2 . . . 2 . . 
+            . . . 2 2 2 . . . 
+            . . . . 2 . . . . 
+            . . . . 2 . . . . 
+            `)
+        dx = mouseX - 160
+        dy = mouseY - 120
+        scene.centerCameraAt(person.x + dx * zoom, person.y + dy * zoom)
+    } else {
+        scene.centerCameraAt(person.x, person.y)
+        mouse.setImage(img`
+            . . 1 . . 
+            . . 1 . . 
+            1 1 . 1 1 
+            . . 1 . . 
+            . . 1 . . 
+            `)
+    }
+})
 forever(function () {
+    if (browserEvents.LeftShift.isPressed()) {
+        scoped = true
+    } else {
+        scoped = false
+    }
     if (toolbar.get_number(ToolbarNumberAttribute.SelectedIndex) == 0) {
         emptypic.setFlag(SpriteFlag.Invisible, true)
         akpic.setFlag(SpriteFlag.Invisible, false)
@@ -684,15 +809,44 @@ forever(function () {
                                 grenad
                                 )
                                 extraEffects.createSpreadEffectOnAnchor(explosiongsprite, extraEffects.createFullPresetsSpreadEffectData(ExtraEffectPresetColor.Fire, ExtraEffectPresetShape.Explosion), 1000, 90, 50)
-                                for (let value2 of spriteutils.getSpritesWithin(SpriteKind.Player, 60, grenad)) {
-                                    healthbar.value += 0 - 120 * (1 - spriteutils.distanceBetween(person, value2) / 60)
+                                for (let index = 0; index < 50; index++) {
+                                    shrapnel = sprites.create(img`
+                                        . . . . . . . . . . . . . . . . 
+                                        . . . . . . . . . . . . . . . . 
+                                        . . b . . . . . . . . . . . . . 
+                                        . . . . . . . . . . c . . . f . 
+                                        . . . . c . . . . . . . . . . . 
+                                        . . . . . . . . . . . . . . . . 
+                                        . . . . . . . . . . f . . . . . 
+                                        . . . . . . . . . . . . . . . . 
+                                        . . . . . . . b . . . . c . . . 
+                                        . c . . . . . . . . . . . . . . 
+                                        . . . . . . . . . . . . . . . . 
+                                        . . . . . . . . . . . . . . . . 
+                                        . . . f . . . . . . . . . . . . 
+                                        . . . . c . . . . . . . . b . . 
+                                        . . . . . . . . . . . c . . . . 
+                                        . . . . . . . . . . . . . . . . 
+                                        `, SpriteKind.piercing)
+                                    spriteutils.placeAngleFrom(
+                                    shrapnel,
+                                    0,
+                                    0,
+                                    grenad
+                                    )
+                                    spriteutils.setVelocityAtAngle(shrapnel, randint(0, 360), 100)
+                                    shrapnel.fx = 40
+                                    shrapnel.fy = 40
                                 }
-                                for (let value22 of spriteutils.getSpritesWithin(SpriteKind.Enemy, 60, grenad)) {
-                                    if (Math.percentChance(73)) {
+                                timer.background(function () {
+                                    for (let value2 of spriteutils.getSpritesWithin(SpriteKind.Player, 60, grenad)) {
+                                        healthbar.value += 0 - 120 * (1 - spriteutils.distanceBetween(person, value2) / 60)
+                                    }
+                                    for (let value22 of spriteutils.getSpritesWithin(SpriteKind.enemyrifleperson, 60, grenad)) {
                                         sprites.destroy(value22)
                                     }
-                                }
-                                sprites.destroy(grenad)
+                                    sprites.destroy(grenad)
+                                })
                             })
                         })
                     } else {
@@ -715,4 +869,9 @@ forever(function () {
     transformSprites.rotateSprite(f1pic, dg)
     transformSprites.rotateSprite(gsh18pic, dg)
     controller.moveSprite(person, speed, speed)
+    for (let value3 of sprites.allOfKind(SpriteKind.enemyrifleperson)) {
+        if (sprites.readDataNumber(value3, "Hp") <= 0) {
+            sprites.destroy(value3)
+        }
+    }
 })
