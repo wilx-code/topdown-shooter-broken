@@ -166,6 +166,9 @@ sprites.onOverlap(SpriteKind.pistol, SpriteKind.enemyrifleperson, function (spri
 scene.onHitWall(SpriteKind.enemyriflebullet, function (sprite, location) {
     sprites.destroy(sprite)
 })
+scene.onHitWall(SpriteKind.Projectile, function (sprite, location) {
+    sprites.destroy(sprite)
+})
 sprites.onOverlap(SpriteKind.enemyriflebullet, SpriteKind.Player, function (sprite, otherSprite) {
     sprites.destroy(sprite)
     healthbar.value += randint(-20, -30)
