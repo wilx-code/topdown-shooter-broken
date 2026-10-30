@@ -115,6 +115,9 @@ spriteutils.onSpriteKindUpdateInterval(SpriteKind.enemyrifleperson, 500, functio
 statusbars.onZero(StatusBarKind.Health, function (status) {
     game.gameOver(false)
 })
+scene.onHitWall(SpriteKind.rifle, function (sprite, location) {
+    sprites.destroy(sprite)
+})
 browserEvents.R.onEvent(browserEvents.KeyEvent.Pressed, function () {
     if (!(browserEvents.MouseLeft.isPressed())) {
         if (!(reloading)) {
@@ -166,12 +169,12 @@ sprites.onOverlap(SpriteKind.pistol, SpriteKind.enemyrifleperson, function (spri
 scene.onHitWall(SpriteKind.enemyriflebullet, function (sprite, location) {
     sprites.destroy(sprite)
 })
-scene.onHitWall(SpriteKind.Projectile, function (sprite, location) {
-    sprites.destroy(sprite)
-})
 sprites.onOverlap(SpriteKind.enemyriflebullet, SpriteKind.Player, function (sprite, otherSprite) {
     sprites.destroy(sprite)
     healthbar.value += randint(-20, -30)
+})
+scene.onHitWall(SpriteKind.pistol, function (sprite, location) {
+    sprites.destroy(sprite)
 })
 sprites.onCreated(SpriteKind.nothin, function (sprite) {
     timer.after(1000, function () {
@@ -773,6 +776,7 @@ forever(function () {
                             . . . . . . . . . . . . . . . . 
                             . . . . . . . . . . . . . . . . 
                             `, SpriteKind.grenade)
+                        grenad.setBounceOnWall(true)
                         spriteutils.placeAngleFrom(
                         grenad,
                         spriteutils.angleFrom(f1pic, mouse),
