@@ -112,6 +112,9 @@ spriteutils.onSpriteKindUpdateInterval(SpriteKind.enemyrifleperson, 500, functio
         })
     }
 })
+browserEvents.Three.onEvent(browserEvents.KeyEvent.Pressed, function () {
+    toolbar.set_number(ToolbarNumberAttribute.SelectedIndex, 2)
+})
 statusbars.onZero(StatusBarKind.Health, function (status) {
     game.gameOver(false)
 })
@@ -173,8 +176,14 @@ sprites.onOverlap(SpriteKind.enemyriflebullet, SpriteKind.Player, function (spri
     sprites.destroy(sprite)
     healthbar.value += randint(-20, -30)
 })
+browserEvents.Two.onEvent(browserEvents.KeyEvent.Pressed, function () {
+    toolbar.set_number(ToolbarNumberAttribute.SelectedIndex, 1)
+})
 scene.onHitWall(SpriteKind.pistol, function (sprite, location) {
     sprites.destroy(sprite)
+})
+browserEvents.One.onEvent(browserEvents.KeyEvent.Pressed, function () {
+    toolbar.set_number(ToolbarNumberAttribute.SelectedIndex, 0)
 })
 sprites.onCreated(SpriteKind.nothin, function (sprite) {
     timer.after(1000, function () {
