@@ -13,7 +13,8 @@
         "Inventory": "github:UnsignedArduino/Inventory#v1.1.1",
         "sprite-fx": "github:kohanmathers/makecodespritefx#v1.3.0",
         "pxt-status-bar": "github:jwunderl/pxt-status-bar#v0.4.2",
-        "pxt-sight": "github:felixtsu/pxt-sight#v0.2.2"
+        "pxt-sight": "github:felixtsu/pxt-sight#v0.2.2",
+        "pxt-lanterns": "github:WoofWoofCodes/lanterns#v1.3.0"
     },
     "files": [
         "main.blocks",
